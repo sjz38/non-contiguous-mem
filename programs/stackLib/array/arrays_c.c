@@ -1,18 +1,8 @@
-//#include <stdlib.h>
-//#include <stdio.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include "arrays_c.h"
 
-#define PAGE_SIZE (1024*32)
-#define PTRS_PER_PAGE (PAGE_SIZE / sizeof(void*))
-#define MAX_PAGES (PTRS_PER_PAGE * PTRS_PER_PAGE)
-#define NUM_ELEMS (PAGE_SIZE / sizeof(int))
-#define ELEMS_PER_L2 (PTRS_PER_PAGE * NUM_ELEMS)
-//#define single (num_data_pages == 1)
-//#define two_level (num_l1_pages > 1)
 
-#define getL1Offset(i) (i / ELEMS_PER_L2)
-#define getL2Index(i)  ((i / NUM_ELEMS) % PTRS_PER_PAGE)
-#define getL2Offset(i) (i % NUM_ELEMS)
 
 array_t *  array_construct(size_t size){
 	array_t * array = malloc(sizeof(array_t));
@@ -124,7 +114,41 @@ int* at_ptr(array_t * this, size_t index) {
 	}
 }
 
-array_t * arrayCopy (array_t * destptr, size_t deststart, array_t * srcptr, size_t srcstart, size_t count){
+
+
+
+MemRegion getRegion(array_t * this, size_t index){
+	MemRegion result;
+	if (this->num_data_pages == 1) {
+		int* entries = (int*) this->ptable;
+		size_t end = NUM_ELEMS > this->num_elems ? this->num_elems - 1 : NUM_ELEMS - 1;
+		result.minValue = &(entries[index]);
+		result.maxValue = &(entries[end]);
+	} 
+	else if (this->num_l1_pages > 1) {
+		int*** entries = (int***) this->ptable;
+		size_t l1off = getL1Offset(index);
+		int** l1_page = entries[l1off];
+		size_t pageno = getL2Index(index);
+		size_t offset = getL2Offset(index);
+		int* page = l1_page[pageno];
+		size_t end = NUM_ELEMS + (index - offset) > this->num_elems ? this->num_elems - index + offset - 1 : NUM_ELEMS - 1;
+		result.minValue = &(page[offset]);
+		result.maxValue = &(page[end]);
+	}
+	else {
+		int** entries = (int**) this->ptable;
+		size_t pageno = index / NUM_ELEMS;
+		size_t offset = index % NUM_ELEMS;
+		int* page = entries[pageno];
+		size_t end = NUM_ELEMS + (index - offset) > this->num_elems ? this->num_elems - index + offset - 1 : NUM_ELEMS - 1;
+		result.minValue = &(page[offset]);
+		result.maxValue = &(page[end]);
+	}
+	return result;
+}
+
+void arrayCopy(array_t * destptr, size_t deststart, array_t * srcptr, size_t srcstart, size_t count){
 	size_t copied = 0;
 	while(copied < count) {
 		MemRegion src = getRegion(srcptr, copied + srcstart);
@@ -137,55 +161,4 @@ array_t * arrayCopy (array_t * destptr, size_t deststart, array_t * srcptr, size
 		}
 	}
 }
-
-MemRegion getregion(array_t * this, size_t index){
-	MemRegion result;
-	if (single) {
-		int* entries = (int*) this->ptable;
-		size_t end = NUM_ELEMS > num_elems ? this->num_elems - 1 : NUM_ELEMS - 1;
-		result.minValue = &(entries[index]);
-		result.maxValue = &(entries[end]);
-	} 
-	else if (two_level) {
-		int*** entries = (int***) this->ptable;
-		size_t l1off = getL1Offset(index);
-		int** l1_page = entries[l1off];
-		size_t pageno = getL2Index(index);
-		size_t offset = getL2Offset(index);
-		int* page = l1_page[pageno];
-		size_t end = NUM_ELEMS + (index - offset) > this->num_elems ? this->num_elems - index + offset - 1 : NUM_ELEMS - 1;
-		result.minValue = &(page[offset]);
-		result.maxValue = &(page[end]);
-	}
-	else {
-		int** entries = (int**) ptable;
-		size_t pageno = index / NUM_ELEMS;
-		size_t offset = index % NUM_ELEMS;
-		int* page = entries[pageno];
-		size_t end = NUM_ELEMS + (index - offset) > this->num_elems ? this->num_elems - index + offset - 1 : NUM_ELEMS - 1;
-		result.minValue = &(page[offset]);
-		result.maxValue = &(page[end]);
-	}
-	return result;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
