@@ -1,4 +1,4 @@
-#include <stdlib.h>
+//#include <stdlib.h>
 #include <stdio.h>
 #include "arrays_c.h"
 
@@ -114,7 +114,7 @@ int* at_ptr(array_t * this, size_t index) {
 	}
 }
 
-
+//See which can run with c++, c
 
 
 MemRegion getRegion(array_t * this, size_t index){

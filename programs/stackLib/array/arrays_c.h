@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include <stdio.h>
+//#include <stdio.h>
 #ifndef ARRAYS_C_H
 #define ARRAYS_C_H
 
@@ -8,13 +8,13 @@
 #define MAX_PAGES (PTRS_PER_PAGE * PTRS_PER_PAGE)
 #define NUM_ELEMS (PAGE_SIZE / sizeof(int))
 #define ELEMS_PER_L2 (PTRS_PER_PAGE * NUM_ELEMS)
-//#define single (num_data_pages == 1)
+//#define single(a) (a->num_data_pages == 1)
 //#define two_level (num_l1_pages > 1)
 
 #define getL1Offset(i) (i / ELEMS_PER_L2)
 #define getL2Index(i)  ((i / NUM_ELEMS) % PTRS_PER_PAGE)
 #define getL2Offset(i) (i % NUM_ELEMS)
-
+getL2Offset(int);
 typedef struct{
 	void* ptable[PTRS_PER_PAGE];
 	size_t num_elems;
@@ -22,7 +22,7 @@ typedef struct{
 	size_t num_data_pages;
 } array_t;
 
-typedef struct{
+typedef struct{ //generic, void poitners
 	int * minValue;
 	int * maxValue;
 }MemRegion;
@@ -33,18 +33,10 @@ array_t * resize	   (size_t old_size, array_t * orig, size_t new_size);
 int at				   (array_t * this, size_t idx);
 int* at_ptr			   (array_t * this, size_t index);
 
-void arrayCopy 		   (array_t * destptr, size_t deststart, array_t * srcptr, size_t srcstart, size_t count);
-void copyInto		   (array_t * destptr, size_t startIdx, void * srcptr, size_t count);
-void copyOutOf		   (void * destptr, array_t * srcptr, size_t startIdx, size_t count);
+void arrayCopy 		   (array_t * destptr, size_t deststart, array_t * srcptr, size_t srcstart, size_t count);//
+void copyInto		   (array_t * destptr, size_t startIdx, void * srcptr, size_t count);//
+void copyOutOf		   (void * destptr, array_t * srcptr, size_t startIdx, size_t count);///
 MemRegion getRegion	   (array_t * this, size_t index);
 
 #endif
 
-
-
-
-//grevdfsf
-
-
-//gerdsfsd
-//herewfse
