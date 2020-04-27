@@ -1,10 +1,9 @@
-//#include <stdlib.h>
 #include <stdio.h>
 #include "arrays_c.h"
 
 
 
-array_t *  array_construct(size_t size){
+array_t * array_construct(size_t size){
 	array_t * array = malloc(sizeof(array_t));
 	array->num_elems = size;
 	array->num_data_pages = (size / NUM_ELEMS) + 1;
@@ -66,7 +65,8 @@ array_t * resize(size_t old_size, array_t * orig, size_t new_size) {
 	for (size_t i = 0; i < copysize; i++) {
 		int* result_p = at_ptr(result, i);
 		*result_p = at(orig, i);
-	 }
+	}
+	array_destruct(orig);
 	return result;
 }
 
@@ -112,11 +112,8 @@ int* at_ptr(array_t * this, size_t index) {
 	}
 }
 
-//See which can run with c++, c
-
-
-MemRegion getRegion(array_t * this, size_t index){
-	MemRegion result;
+struct MemRegion getRegion(array_t * this, size_t index) {
+	struct MemRegion result;
 	if (single_level(this)) {
 		int* entries = (int*) this->ptable;
 		size_t end = NUM_ELEMS > this->num_elems ? this->num_elems - 1 : NUM_ELEMS - 1;
@@ -146,11 +143,11 @@ MemRegion getRegion(array_t * this, size_t index){
 	return result;
 }
 
-void arrayCopy(array_t * destptr, size_t deststart, array_t * srcptr, size_t srcstart, size_t count){
+void arrayCopy(array_t* destptr, size_t deststart, array_t* srcptr, size_t srcstart, size_t count){
 	size_t copied = 0;
 	while(copied < count) {
-		MemRegion src = getRegion(srcptr, copied + srcstart);
-		MemRegion dest = getRegion(destptr, copied + deststart);
+		struct MemRegion src = getRegion(srcptr, copied + srcstart);
+		struct MemRegion dest = getRegion(destptr, copied + deststart);
 		while (copied < count && src.minValue <= src.maxValue && dest.minValue <= dest.maxValue) {
 	  	*(dest.minValue) = *(src.minValue);
 	  	src.minValue++;
@@ -159,4 +156,35 @@ void arrayCopy(array_t * destptr, size_t deststart, array_t * srcptr, size_t src
 		}
 	}
 }
+/*
+void copyInto(array_t * destptr, size_t startIdx, void* srcptr, size_t count) {
+  size_t copied = 0;
+  int* source = (int*) srcptr;
+  while(copied < count) {
+    MemRegion dest = getRegion(destptr, copied + startIdx);
+    while (copied < count && dest.minValue <= dest.maxValue) {
+      *(dest.minValue) = *source;
+      source++;
+      dest.minValue++;
+      copied++;
+    }
+  }
+}
+
+void copyOutOf(void* destptr,array_t * srcptr, size_t startIdx, size_t count) {
+  size_t copied = 0;
+  int* dest = (int*) destptr;
+  while(copied < count) {
+    MemRegion src = getRegion(srcptr, copied + startIdx);
+    while (copied < count && src.minValue <= src.maxValue) {
+      *dest = *(src.minValue);
+      src.minValue++;
+      dest++;      
+      copied++;
+    }
+  }
+}*/
+
+
+
 
