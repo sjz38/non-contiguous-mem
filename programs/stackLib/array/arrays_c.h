@@ -8,13 +8,13 @@
 #define MAX_PAGES (PTRS_PER_PAGE * PTRS_PER_PAGE)
 #define NUM_ELEMS (PAGE_SIZE / sizeof(int))
 #define ELEMS_PER_L2 (PTRS_PER_PAGE * NUM_ELEMS)
-//#define single(a) (a->num_data_pages == 1)
-//#define two_level (num_l1_pages > 1)
+#define single_level(array) (array->num_data_pages == 1)
+#define two_level(array) (array->num_l1_pages > 1)
 
 #define getL1Offset(i) (i / ELEMS_PER_L2)
 #define getL2Index(i)  ((i / NUM_ELEMS) % PTRS_PER_PAGE)
 #define getL2Offset(i) (i % NUM_ELEMS)
-getL2Offset(int);
+//getL2Offset(int);
 typedef struct{
 	void* ptable[PTRS_PER_PAGE];
 	size_t num_elems;

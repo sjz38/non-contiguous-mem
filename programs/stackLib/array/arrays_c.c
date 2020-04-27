@@ -18,8 +18,8 @@ array_t *  array_construct(size_t size){
 		exit(1);
 	}
 	array->num_elems = size;
-	if(array->num_data_pages > 1){	 //What if num_data_pages = 1 (single)?
-		if(array->num_l1_pages > 1){
+	if(!single_level(array)){	 //What if num_data_pages = 1 (single)?
+		if(two_level(array)){
 			for(size_t i = 0; i < array->num_l1_pages; i++){
 				void * l1_page = malloc(PAGE_SIZE);
 				array->ptable[i] = l1_page; //First page contains pointers to other pages
@@ -41,8 +41,8 @@ array_t *  array_construct(size_t size){
 }
 
 void array_destruct(array_t * this) {
-	if (!(this->num_data_pages == 1)) {
-		if (this->num_l1_pages > 1) {
+	if (!single_level(this)) {
+		if (two_level(this)) {
 			for (size_t i = 0; i < this->num_l1_pages; i++) {
 				void **l1_page = (void**) this->ptable[i];
 				size_t l2pages = (i == this->num_l1_pages - 1) ? this->num_data_pages % PTRS_PER_PAGE : PTRS_PER_PAGE;
@@ -65,18 +65,16 @@ array_t * resize(size_t old_size, array_t * orig, size_t new_size) {
 	size_t copysize = (new_size > old_size) ? old_size : new_size;
 	for (size_t i = 0; i < copysize; i++) {
 		int* result_p = at_ptr(result, i);
-		*result_p = at(orig, i); //Change to use .at()
-		//Do we need another function to assign value in array?
-		//at, but return pointer (&)
+		*result_p = at(orig, i);
 	 }
 	return result;
 }
 
 int at(array_t * this, size_t index) {
-	if (this->num_data_pages == 1) {
+	if (single_level(this)) {
 		int* entries = (int*) this->ptable;
 		return entries[index];
-	} else if (this->num_l1_pages > 1) {
+	} else if (two_level(this)) {
 		int*** entries = (int***) this->ptable;
 		size_t l1off = getL1Offset(index);
 		int** l1_page = entries[l1off];
@@ -94,10 +92,10 @@ int at(array_t * this, size_t index) {
 }
 
 int* at_ptr(array_t * this, size_t index) {
-	if (this->num_data_pages == 1) {
+	if (single_level(this)) {
 		int* entries = (int*) this->ptable;
 		return &entries[index];
-	} else if (this->num_l1_pages > 1) {
+	} else if (two_level(this)) {
 		int*** entries = (int***) this->ptable;
 		size_t l1off = getL1Offset(index);
 		int** l1_page = entries[l1off];
@@ -119,13 +117,13 @@ int* at_ptr(array_t * this, size_t index) {
 
 MemRegion getRegion(array_t * this, size_t index){
 	MemRegion result;
-	if (this->num_data_pages == 1) {
+	if (single_level(this)) {
 		int* entries = (int*) this->ptable;
 		size_t end = NUM_ELEMS > this->num_elems ? this->num_elems - 1 : NUM_ELEMS - 1;
 		result.minValue = &(entries[index]);
 		result.maxValue = &(entries[end]);
 	} 
-	else if (this->num_l1_pages > 1) {
+	else if (two_level(this)) {
 		int*** entries = (int***) this->ptable;
 		size_t l1off = getL1Offset(index);
 		int** l1_page = entries[l1off];
