@@ -2,15 +2,14 @@
 #include "arrays_c.h"
 
 
-
 array_t * array_construct(size_t size){
 	array_t * array = malloc(sizeof(array_t));
 	array->num_elems = size;
 	array->num_data_pages = (size / NUM_ELEMS) + 1;
 	array->num_l1_pages = (array->num_data_pages / PTRS_PER_PAGE) + 1;
-	printf("Size of element is %lu\n", sizeof(int));
-  	printf("Num pages allocated is %lu\n", array->num_data_pages);
-  	printf("Number of l1 pages is %lu\n", array->num_l1_pages);
+	//printf("Size of element is %lu\n", sizeof(int));
+  //printf("Num pages allocated is %lu\n", array->num_data_pages);
+  //printf("Number of l1 pages is %lu\n", array->num_l1_pages);
 	
 	if (array->num_data_pages > MAX_PAGES){
 		printf("Can't support that many pages!!\n");
@@ -149,19 +148,20 @@ void arrayCopy(array_t* destptr, size_t deststart, array_t* srcptr, size_t srcst
 		MemRegion src = getRegion(srcptr, copied + srcstart);
 		MemRegion dest = getRegion(destptr, copied + deststart);
 		while (copied < count && src.minValue <= src.maxValue && dest.minValue <= dest.maxValue) {
-	  	*(dest.minValue) = *(src.minValue);
-	  	src.minValue++;
-	  	dest.minValue++;
-	  	copied++;
+			*(dest.minValue) = *(src.minValue);
+			src.minValue++;
+			dest.minValue++;
+			copied++;
 		}
 	}
 }
-/*
+
 void copyInto(array_t * destptr, size_t startIdx, void* srcptr, size_t count) {
   size_t copied = 0;
   int* source = (int*) srcptr;
   while(copied < count) {
     MemRegion dest = getRegion(destptr, copied + startIdx);
+    printf("dest: %d, %d\n", *dest.minValue, *dest.maxValue);
     while (copied < count && dest.minValue <= dest.maxValue) {
       *(dest.minValue) = *source;
       source++;
@@ -183,7 +183,7 @@ void copyOutOf(void* destptr,array_t * srcptr, size_t startIdx, size_t count) {
       copied++;
     }
   }
-}*/
+}
 
 
 

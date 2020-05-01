@@ -35,4 +35,6 @@ int at				   		(array_t * this, size_t idx);
 int* at_ptr			   		(array_t * this, size_t index);
 MemRegion getRegion		(array_t * this, size_t index);
 void arrayCopy 		   		(array_t* destptr, size_t deststart, array_t* srcptr, size_t srcstart, size_t count);
+void copyInto		   		(array_t * destptr, size_t startIdx, void * srcptr, size_t count);
+void copyOutOf		  		(void * destptr, array_t * srcptr, size_t startIdx, size_t count);
 #endif // ARRAYS_C_H
