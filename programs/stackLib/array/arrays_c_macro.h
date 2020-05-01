@@ -15,13 +15,16 @@
 #define getL2Index(i)  ((i / NUM_ELEMS) % PTRS_PER_PAGE)
 #define getL2Offset(i) (i % NUM_ELEMS)
 
-#define ARRAY_T										\
-	struct{													\
-		void* ptable[PTRS_PER_PAGE];	\
-		size_t num_elems;							\
-		size_t num_l1_pages;					\
-		size_t num_data_pages;				\
-	}
+typedef struct{	
+		void* ptable[PTRS_PER_PAGE];		
+		size_t num_elems;								
+		size_t num_l1_pages;						
+		size_t num_data_pages;					
+}array_t
+	
+//How to return value from function?
+//How to handle if statement syntax
+//How to malloc
 /*
 #define MEMREGION_T(type)
 	struct{ 					\
@@ -29,36 +32,39 @@
 		type * maxValue;				\
 	}
 */
-#define ARRAY_CONSTRUCT(size)	\
-	ARRAY_T* array = malloc(sizeof(ARRAY_T));		\
-	array->num_elems = size;		\
-	array->num_l1_pages = (array->num_data_pages / PTRS_PER_PAGE) + 1;	\
-  
-  if (array->num_data_pages > MAX_PAGES){	\
-		printf("Can't support that many pages!!\n");	\
-		exit(1);	\
-	}	\
-	array.num_elems = size;	\
-	if(!single_level(array)){	 		\
-		if(two_level(array)){		\
-			for(size_t i = 0; i < array->num_l1_pages; i++){	\
-				void * l1_page = malloc(PAGE_SIZE);	\
-				array->ptable[i] = l1_page; 	\
-				size_t l2pages = (i == array->num_l1_pages - 1) ? array->num_data_pages % PTRS_PER_PAGE : PTRS_PER_PAGE;	\
-				for (size_t j = 0; j < l2pages; j++){	\
-					void ** l1_page_cast = (void **)l1_page;	\
-					l1_page_cast[j] = malloc(PAGE_SIZE);	\
-				}	\
-			}	\
-		} 	\
-		else { 	\
-			for (size_t i = 0; i < array->num_data_pages; i++){	\
-				void * page = malloc(PAGE_SIZE);	\
-				array->ptable[i] = page;	\
-			}	\
-		}		\
-	}	\
-	array;	\
+#define MALLOC(p,s) (p=malloc(s))
+
+#define ARRAY_CONSTRUCT(array, size)	({\
+	/*array_t* array = malloc(sizeof(array_t));	\ */
+	MALLOC(array, sizeof(array_t));															\
+	(array)->num_elems = size;																							\
+	(array)->num_data_pages = (size / NUM_ELEMS) + 1;												\
+	(array)->num_l1_pages = ((array)->num_data_pages / PTRS_PER_PAGE) + 1;	\
+	if ((array)->num_data_pages > MAX_PAGES){																\
+		printf("Can't support that many pages!!\n");													\
+		exit(1);																															\
+	}																																				\
+	(array)->num_elems = size;																								\
+	if(!single_level(array)){	 																												\
+		if(two_level(array)){																											\
+			for(size_t i = 0; i < (array)->num_l1_pages; i++){																	\
+				void * l1_page = malloc(PAGE_SIZE);																	\
+				(array)->ptable[i] = l1_page; 																									\
+				size_t l2pages = (i == (array)->num_l1_pages - 1) ? (array)->num_data_pages % PTRS_PER_PAGE : PTRS_PER_PAGE;	\
+				for (size_t j = 0; j < l2pages; j++){																			\
+					void ** l1_page_cast = (void **)l1_page;															\
+					l1_page_cast[j] = malloc(PAGE_SIZE);																							\
+				}																																			\
+			}																																		\
+		} 																																				\
+		else { 																																			\
+			for (size_t i = 0; i < (array)->num_data_pages; i++){											\
+				void * page = malloc(PAGE_SIZE);																			\
+				(array)->ptable[i] = page;																								\
+			}																																					\
+		}																																			\
+	}																																											\
+	})																																	
 
 /*
 #define ARRAY_DESTRUCT(array)	\
