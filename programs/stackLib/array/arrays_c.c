@@ -1,4 +1,4 @@
-#include <stdio.h>
+//#include <stdio.h>
 #include "arrays_c.h"
 
 
@@ -112,8 +112,8 @@ int* at_ptr(array_t * this, size_t index) {
 	}
 }
 
-struct MemRegion getRegion(array_t * this, size_t index) {
-	struct MemRegion result;
+MemRegion getRegion (array_t * this, size_t index) {
+	MemRegion result;
 	if (single_level(this)) {
 		int* entries = (int*) this->ptable;
 		size_t end = NUM_ELEMS > this->num_elems ? this->num_elems - 1 : NUM_ELEMS - 1;
@@ -146,8 +146,8 @@ struct MemRegion getRegion(array_t * this, size_t index) {
 void arrayCopy(array_t* destptr, size_t deststart, array_t* srcptr, size_t srcstart, size_t count){
 	size_t copied = 0;
 	while(copied < count) {
-		struct MemRegion src = getRegion(srcptr, copied + srcstart);
-		struct MemRegion dest = getRegion(destptr, copied + deststart);
+		MemRegion src = getRegion(srcptr, copied + srcstart);
+		MemRegion dest = getRegion(destptr, copied + deststart);
 		while (copied < count && src.minValue <= src.maxValue && dest.minValue <= dest.maxValue) {
 	  	*(dest.minValue) = *(src.minValue);
 	  	src.minValue++;
