@@ -8,12 +8,12 @@
 #define MAX_PAGES (PTRS_PER_PAGE * PTRS_PER_PAGE)
 //#define NUM_ELEMS (PAGE_SIZE / sizeof(int))
 //#define ELEMS_PER_L2 (PTRS_PER_PAGE * NUM_ELEMS)
-#define single_level(array) (array->num_data_pages == 1)
-#define two_level(array) (array->num_l1_pages > 1)
+//#define single_level(array) (array->num_data_pages == 1)
+//#define two_level(array) (array->num_l1_pages > 1)
 
-#define getL1Offset(i) (i / ELEMS_PER_L2)
-#define getL2Index(i)  ((i / NUM_ELEMS) % PTRS_PER_PAGE)
-#define getL2Offset(i) (i % NUM_ELEMS)
+//#define getL1Offset(i) (i / ELEMS_PER_L2)
+//#define getL2Index(i)  ((i / NUM_ELEMS) % PTRS_PER_PAGE)
+//#define getL2Offset(i) (i % NUM_ELEMS)
 
 typedef struct array_t{	
 		void* ptable[PTRS_PER_PAGE];		
@@ -25,13 +25,11 @@ typedef struct array_t{
 //How to return value from function?
 //How to handle if statement syntax
 //How to malloc
-/*
-#define MEMREGION_T(type)
-	struct{ 					\
-		type * minValue;				\
-		type * maxValue;				\
-	}
-*/
+
+typedef struct{ //generic, void poitners
+	void * minValue;
+	void * maxValue;
+}MemRegion;
 
 
 #define ARRAY_CONS_MAKER(type)	\
@@ -93,7 +91,9 @@ void array_destruct(array_t * this) {
       		}
 		}
 	}
+	//free(this);	
 }
+
 #define AT_MAKER(type)\
 	type* at_##type(array_t * array, size_t index) {\
 		size_t NUM_ELEMS = PAGE_SIZE / sizeof(type);	\
@@ -103,7 +103,7 @@ void array_destruct(array_t * this) {
 			return &(entries[index]);\
 		} else if (array->num_l1_pages > 1) {\
 			type*** entries = (type***) array->ptable;\
-			size_t l1off = getL1Offset(index);\
+			size_t l1off = index / ELEMS_PER_L2;\
 			type** l1_page = entries[l1off];\
 			size_t pageno = (index / NUM_ELEMS) % PTRS_PER_PAGE;\
 			size_t offset = index % NUM_ELEMS;\
@@ -135,4 +135,41 @@ AT_MAKER(double);
 
 RESIZE_MAKER(int);
 RESIZE_MAKER(double);
+
+#define GETREGION_MAKER(type)	\
+	MemRegion getRegion_##type (array_t * array, size_t index) {\
+		size_t NUM_ELEMS = PAGE_SIZE / sizeof(type);\
+		size_t ELEMS_PER_L2 = PTRS_PER_PAGE * NUM_ELEMS;\
+		MemRegion result;\
+		if (array->num_data_pages == 1) {\
+			type* entries = (type*) array->ptable;\
+			size_t end = NUM_ELEMS > array->num_elems ? array->num_elems - 1 : NUM_ELEMS - 1;\
+			result.minValue = &(entries[index]);\
+			result.maxValue = &(entries[end]); \
+		} \
+		else if (array->num_l1_pages > 1) {\
+			type*** entries = (type***) array->ptable;\
+			size_t l1off = index / ELEMS_PER_L2;\
+			type** l1_page = entries[l1off];\
+			size_t pageno = (index / NUM_ELEMS) % PTRS_PER_PAGE;\
+			size_t offset = index % NUM_ELEMS;\
+			type* page = l1_page[pageno];\
+			size_t end = NUM_ELEMS + (index - offset) > array->num_elems ? array->num_elems - index + offset - 1 : NUM_ELEMS - 1;\
+			result.minValue = &(page[offset]);\
+			result.maxValue = &(page[end]);\
+		}\
+		else {\
+			type** entries = (type**) array->ptable;\
+			size_t pageno = index / NUM_ELEMS;\
+			size_t offset = index % NUM_ELEMS;\
+			type* page = entries[pageno];\
+			size_t end = NUM_ELEMS + (index - offset) > array->num_elems ? array->num_elems - index + offset - 1 : NUM_ELEMS - 1;\
+			result.minValue = &(page[offset]);\
+			result.maxValue = &(page[end]);\
+		}\
+		return result;\
+	}
+	
+GETREGION_MAKER(int);
+GETREGION_MAKER(double);
 #endif // ARRAYS_C_MACRO_H
