@@ -121,6 +121,18 @@ void array_destruct(array_t * this) {
 AT_MAKER(int);
 AT_MAKER(double);
 
+#define RESIZE_MAKER(type)\
+	array_t * resize_##type(size_t old_size, array_t * orig, size_t new_size) {\
+		array_t * result = array_construct_##type(new_size);\
+		size_t copysize = (new_size > old_size) ? old_size : new_size;\
+		for (size_t i = 0; i < copysize; i++) {\
+			type* result_p = at_##type(result, i);\
+			*result_p = *(at_##type(orig, i));\
+		}\
+		array_destruct(orig);\
+		return result;\
+	}
 
-
+RESIZE_MAKER(int);
+RESIZE_MAKER(double);
 #endif // ARRAYS_C_MACRO_H
