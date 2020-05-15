@@ -36,7 +36,7 @@ typedef struct{ //generic, void poitners
 	array_t * array_construct_##type(size_t size){	\
 		size_t NUM_ELEMS = PAGE_SIZE / sizeof(type);	\
 		size_t ELEMS_PER_L2 = PTRS_PER_PAGE * NUM_ELEMS;	\
-		array_t * array = malloc(sizeof(type) * size);	\
+		array_t * array = malloc(sizeof(array_t));	\
 		array->num_elems = size;	\
 		array->num_data_pages = (size / NUM_ELEMS) + 1;	\
 		array->num_l1_pages = (array->num_data_pages / PTRS_PER_PAGE) + 1;	\
@@ -91,7 +91,7 @@ void array_destruct(array_t * this) {
       		}
 		}
 	}
-	//free(this);	
+	free(this);	
 }
 
 #define AT_MAKER(type)\

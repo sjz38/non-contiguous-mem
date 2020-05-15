@@ -56,6 +56,7 @@ void array_destruct(array_t * this) {
       		}
 		}
 	}
+	free(this);
 }
 
 array_t * resize(size_t old_size, array_t * orig, size_t new_size) {
